@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="sea" basedir=".">
+	<property environment="env" />
+	<property file="${basedir}/conf/build.properties" />
+	
+	<target name="setup.folders">
+		<mkdir dir="${project.dist}"/>
+		<mkdir dir="${project.build.ejb}"/>
+		<mkdir dir="${project.build.client}"/>
+		<mkdir dir="${project.build.web}"/>
+		<mkdir dir="${project.build.test}"/>
+	</target>
+	<target name="setup.ds">
+		<copy file="${project.conf}/${project.datasource}" todir="${server.deploy}" />
+	</target>
+	<target name="clean">
+		<delete includeemptydirs="true" >
+			<fileset dir="${project.build.ejb}" includes="**/*"/>
+			<fileset dir="${project.build.client}" includes="**/*"/>
+			<fileset dir="${project.build.web}" includes="**/*"/>
+			<fileset dir="${project.build.test}" includes="**/*"/>
+		</delete>
+	</target>
+	
+	<path id="base.classpath">
+		<fileset dir="${server.lib.common}">
+			<include name="ejb3-persistence.jar"/>
+			<include name="jboss-javaee.jar"/>
+			<include name="servlet-api.jar"/>
+			<include name="log4j.jar"/>
+			<include name="jboss-ejb3-ext-api.jar"/>
+			<include name="hibernate-core.jar"/>
+		</fileset>
+		<fileset dir="${server.lib.default}">
+			<include name="jsoup-1.6.0.jar"/>
+			<include name="hibernate-search.jar"/>
+			<!--include name="hibernate-annotations.jar"/-->
+			<include name="lucene-core.jar"/>
+			<!--include name="hibernate-jpa-2.0-api-1.0.0.Final.jar"/-->
+		</fileset>
+	</path>
+	
+	<path id="web.classpath">
+		<fileset dir="${project.webcontent}/lib" includes="**/*.jar">
+		</fileset>
+	</path>
+	
+	<target name="compile" depends="clean">
+		<javac debug="${project.debug}" srcdir="${project.src.client}" destdir="${project.build.client}" classpathref="base.classpath">
+		</javac>
+		<javac debug="${project.debug}" srcdir="${project.src.ejb}" destdir="${project.build.ejb}" classpathref="base.classpath">
+			<classpath location="${project.build.client}"/>
+		</javac>
+		<javac debug="${project.debug}" srcdir="${project.src.web}" destdir="${project.build.web}" classpathref="base.classpath">
+<!-- 			<classpath location="${project.build.client}"/> -->
+			<classpath location="${project.build.ejb}"/>
+		</javac>
+		<javac debug="${project.debug}" srcdir="${project.src.test}" destdir="${project.build.test}" classpathref="base.classpath">
+			<classpath location="${project.build.client}"/>
+		</javac>
+	</target>
+
+	<target name="jar-client">
+		<jar destfile="${project.dist}/${project.name.client}" basedir="${project.build.client}">
+		</jar>
+	</target>
+
+	<target name="jar-ejb">
+		<jar destfile="${project.dist}/${project.name.ejb}" basedir="${project.build.ejb}">
+			<metainf dir="${project.conf}">
+				<include name="ejb-jar.xml"/>
+				<include name="persistence.xml"/>
+			</metainf>
+			<fileset dir="${project.lib}" />
+		</jar>
+	</target>
+	
+	<target name="war-web">
+		<war destfile="${project.dist}/${project.name.war}" webxml="${project.conf}/web.xml" >
+			<fileset dir="${project.webcontent}">
+				<exclude name="lib/**"/>
+			</fileset>
+			<classes dir="${project.build.web}"></classes>
+			<lib dir="${project.lib}" includes="**/*.jar"></lib>
+		</war>
+	</target>
+		
+	<target name="ear-app" depends="compile,jar-client,jar-ejb,war-web">
+		<ear destfile="${project.dist}/${project.name.ear}" appxml="${project.conf}/application.xml" basedir="${project.dist}">
+			<include name="${project.name.war}"/>
+			<include name="${project.name.ejb}"/>
+			<include name="${project.name.client}"/>
+		</ear>
+	</target>
+	
+	<target name="deploy" depends="undeploy,ear-app">
+		<copy file="${project.dist}/${project.name.ear}" todir="${server.deploy}" />
+	</target>
+
+	<target name="undeploy">
+		<delete file="${server.deploy}/${project.name.ear}" />
+	</target>
+</project>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<application>
+	<display-name>EJB3 Ear</display-name>
+	<module>
+		<ejb>sea-ejb.jar</ejb>
+	</module>
+	<module>
+		<web>
+			<web-uri>sea.war</web-uri>
+			<context-root>/sea</context-root>
+		</web>
+	</module>
+	<module>
+		<java>sea-client.jar</java>
+	</module>
+</application>

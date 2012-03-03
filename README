@@ -1,0 +1,22 @@
+Project-Name: Search Engine Application
+Created Date: Sun Jun 19, 2011
+Author: Nurlan Rakhimzhanov
+
+JBoss AS 5.1.0.GA
+
+jar version:
+lucene-core-2.4.0.jar
+hibernate-search-3.1.0.GA.jar
+jsoup-1.6.0.jar
+mysql-connector-java-5.1.15-bin.jar
+
+
+jms queue:
+jboss-5.1.0.GA/server/default/deploy/messaging/destinations-service.xml
+
+   <mbean code="org.jboss.jms.server.destination.QueueService"
+      name="jboss.messaging.destination:service=Queue,name=linkQueue"
+      xmbean-dd="xmdesc/Queue-xmbean.xml">
+      <depends optional-attribute-name="ServerPeer">jboss.messaging:service=ServerPeer</depends>
+      <depends>jboss.messaging:service=PostOffice</depends>
+   </mbean>
